@@ -3,66 +3,51 @@
 Auckland market rent data by district
 """
 
-from datetime import datetime
+from functools import partial
 
-from pandas.io.parsers import read_csv
-
-
-DATA_DIR = "data"
-
-INDEX_COLUMN = "Date Lodged"
-COLUMNS = (("Auckland", "Auckland City District"),
-           ("Manukau", "Manukau City District"),
-           ("North Shore", "North Shore City District"),
-           ("Waitakere", "Waitakere City District"),
-           ("Date.Lodged", INDEX_COLUMN),)
-
-NA_VALUE = "NA"
+import pandas as pd
 
 
-def compose(*fns):
-    def _compose(*args, **kwargs):
+def pipe(*fns):
+    def _pipe(*args, **kwargs):
         return reduce(lambda r, fn: fn(r),
                       fns[1:],
                       fns[0](*args, **kwargs))
 
-    return _compose
+    return _pipe
 
 
-def set_index(df):
-    return df.set_index(INDEX_COLUMN)
+def rename(df, *args, **kwargs):
+    return getattr(df, rename.__name__)(*args, **kwargs)
 
 
-def dtfy(df):
-    def _str_to_dt(s):
-        return datetime.strptime(s, "%Y-%m-%d")
-
-    df[INDEX_COLUMN] = df[INDEX_COLUMN].map(_str_to_dt)
+def set_index(df, column="", to_datetime=False):
+    df = df.set_index(column)
+    if to_datetime:
+        df.index = df.index.to_datetime()
     return df
 
 
-def rename_columns(df):
-    return df.rename(columns=dict(COLUMNS), inplace=False)
-
-
-def read_data(filename):
-    return read_csv("{0}/{1}".format(DATA_DIR, filename),
-                    usecols=("Auckland",
-                             "Franklin District",
-                             "Manukau",
-                             "North Shore",
-                             "Papakura District",
-                             "Rodney District",
-                             "Waitakere",
-                             "National",
-                             "Date.Lodged",))
-
-
 if __name__ == "__main__":
-    fn = compose(read_data, rename_columns, dtfy, set_index)
-    df = fn("mean-rents-by-ta.csv")
-    print("First five rows:")
+    columns = ("Auckland",
+               "Franklin District",
+               "Manukau",
+               "North Shore",
+               "Papakura District",
+               "Rodney District",
+               "Waitakere",
+               "National",
+               "Date.Lodged",)
+    index_column = "Date.Lodged"
+    column_names = {"Auckland": "Auckland City District",
+                    "Manukau": "Manukau City District",
+                    "North Shore": "North Shore City District",
+                    "Waitakere": "Waitakere City District",
+                    "Date.Lodged": "Date Lodged"}
+
+    df = pipe(
+        partial(pd.read_csv, usecols=columns),
+        partial(rename, columns=column_names),
+        partial(set_index, column="Date Lodged", to_datetime=True)
+    )("data/mean-rents-by-ta.csv")
     print(df.head())
-    print("Last five rows:")
-    print(df.tail())
-    print(df.plot())
