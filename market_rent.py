@@ -3,38 +3,11 @@
 Auckland market rent data by district
 """
 
-import sys
 from functools import partial
-if sys.version_info[0] == 3:
-    from functools import reduce
-    reduce = reduce
 
 import pandas as pd
 
-
-def pipe(*fns):
-    def _pipe(*args, **kwargs):
-        return reduce(lambda r, fn: fn(r),
-                      fns[1:],
-                      fns[0](*args, **kwargs))
-
-    return _pipe
-
-
-def rename(df, *args, **kwargs):
-    return getattr(df, rename.__name__)(*args, **kwargs)
-
-
-def set_index(df, column="", to_datetime=False):
-    df = df.set_index(column)
-    if to_datetime:
-        df.index = df.index.to_datetime()
-    df.index.name = column  # set index name
-    return df
-
-
-def add_postfix(column_names, postfix):
-    return lambda c: "%s %s" % (column_names.get(c, c), postfix,)
+from lib import pipe, rename, set_index, add_postfix, merge_dfs
 
 
 if __name__ == "__main__":
@@ -62,6 +35,9 @@ if __name__ == "__main__":
         partial(rename, columns=column_names),
         partial(set_index, column="Date Lodged", to_datetime=True)
     )("data/mean-rents-by-ta.csv").tail(12 * years)
+    print("[Mean]")
+    print("* last five:")
+    print(mean.tail())
 
     # lower-quartile values
     lq = pipe(
@@ -69,6 +45,9 @@ if __name__ == "__main__":
         partial(rename, columns=add_postfix(column_names, "(LQ)")),
         partial(set_index, column="Date Lodged (LQ)", to_datetime=True)
     )("data/synthetic-lower-quartile-rents-by-ta.csv").tail(12 * years)
+    print("[Lower-Quartile]")
+    print("* last five:")
+    print(lq.tail())
 
     # upper-quartile values
     uq = pipe(
@@ -76,13 +55,12 @@ if __name__ == "__main__":
         partial(rename, columns=add_postfix(column_names, "(UQ)")),
         partial(set_index, column="Date Lodged (UQ)", to_datetime=True)
     )("data/synthetic-upper-quartile-rents-by-ta.csv").tail(12 * years)
+    print("[Lower-Quartile]")
+    print("* last five:")
+    print(uq.tail())
 
     # merge data frames together
-    merged = reduce(lambda df1, df2: pd.merge(
-        df1, df2,
-        left_index=df1.index.name, right_index=df2.index.name,
-        how="inner"
-    ), (mean, lq, uq,))
+    merged = merge_dfs(mean, lq, uq)
 
     # north shore city district (mean/lower-quartile/upper-quartile)
     nscd = rename(merged[["North Shore City District",
@@ -92,8 +70,6 @@ if __name__ == "__main__":
                            "North Shore City District (LQ)": "Lower-Quartile",
                            "North Shore City District (UQ)": "Upper-Quartile"})
     print("[North Shore City (Mean/Lower-Quartile/Upper-Quartile)]")
-    print("* first five:")
-    print(nscd.head())
     print("* last five:")
     print(nscd.tail())
 
@@ -105,7 +81,5 @@ if __name__ == "__main__":
                           "Auckland City District (LQ)": "Lower-Quartile",
                           "Auckland City District (UQ)": "Upper-Quartile"})
     print("[Auckland City (Mean/Lower-Quartile/Upper-Quartile)]")
-    print("* first five:")
-    print(acd.head())
     print("* last five:")
     print(acd.tail())
