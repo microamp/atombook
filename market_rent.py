@@ -7,7 +7,7 @@ from functools import partial
 
 import pandas as pd
 
-from .lib import pipe, rename, set_index, add_postfix, merge_dfs
+from lib import pipe, rename, set_index, add_postfix, merge_dfs
 
 
 if __name__ == "__main__":
