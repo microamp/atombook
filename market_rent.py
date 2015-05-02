@@ -7,7 +7,7 @@ from functools import partial
 
 import pandas as pd
 
-from lib import pipe, rename, set_index, add_postfix, merge_dfs
+from lib import pipe, rename, set_index, add_suffix, merge_dfs
 
 
 if __name__ == "__main__":
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # lower-quartile values
     lq = pipe(
         partial(pd.read_csv, usecols=columns),
-        partial(rename, columns=add_postfix(column_names, "(LQ)")),
+        partial(rename, columns=add_suffix(column_names, "(LQ)")),
         partial(set_index, column="Date Lodged (LQ)", to_datetime=True)
     )("data/synthetic-lower-quartile-rents-by-ta.csv").tail(12 * years)
     print("[Lower-Quartile]")
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # upper-quartile values
     uq = pipe(
         partial(pd.read_csv, usecols=columns),
-        partial(rename, columns=add_postfix(column_names, "(UQ)")),
+        partial(rename, columns=add_suffix(column_names, "(UQ)")),
         partial(set_index, column="Date Lodged (UQ)", to_datetime=True)
     )("data/synthetic-upper-quartile-rents-by-ta.csv").tail(12 * years)
     print("[Lower-Quartile]")

@@ -8,4 +8,4 @@ The Ministry of Business, Innovation and Employment (http://www.dbh.govt.nz)
 
 ## License
 
-Creative Commons Attribution
+The MIT License (MIT)

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from functools import reduce
-
 import pandas as pd
 
 
@@ -26,8 +24,8 @@ def set_index(df, column="", to_datetime=False):
     return df
 
 
-def add_postfix(column_names, postfix):
-    return lambda c: "%s %s" % (column_names.get(c, c), postfix,)
+def add_suffix(column_names, suffix):
+    return lambda c: "%s %s" % (column_names.get(c, c), suffix,)
 
 
 def merge_dfs(*dfs):
